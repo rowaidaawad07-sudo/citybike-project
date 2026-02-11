@@ -1,291 +1,415 @@
 """
-Custom sorting and searching algorithms for the CityBike platform.
-Implementiert Merge Sort und Binary Search, sowie Benchmark-Funktionen.
+Custom sorting and searching algorithms.
+
+Provided:
+    - merge_sort
+    - benchmark_sort
+
+Students must implement:
+    - insertion_sort   — second sorting algorithm
+    - binary_search    — search on sorted data
+    - linear_search    — brute-force search for comparison
+    - benchmark_search — timing comparison for search algorithms
+
+Use timeit to measure execution times.
+Document the Big-O complexity of each algorithm.
 """
 
-import time
-import pandas as pd
-from typing import List, Any, Tuple
 import timeit
+from collections.abc import Callable
+from typing import Any
 
 
-def merge_sort(arr: List[Any], key: str = None) -> List[Any]:
-    """
-    Implementierung des Merge-Sort-Algorithmus.
-    
+# ---------------------------------------------------------------------------
+# Sorting — Merge Sort
+# ---------------------------------------------------------------------------
+
+def merge_sort(data: list[Any], key: Callable = lambda x: x) -> list[Any]:
+    """Sort *data* using the merge-sort algorithm.
+
     Args:
-        arr: Zu sortierende Liste (kann Liste von Dictionaries sein)
-        key: Falls Dictionaries sortiert werden, Schlüssel zum Sortieren
-        
+        data: List of items to sort.
+        key: Function that extracts a comparison key from each item.
+
     Returns:
-        Sortierte Liste
+        A new sorted list.
+
+    Complexity:
+        Time  — O(n log n)
+        Space — O(n)
     """
-    if len(arr) <= 1:
-        return arr
-    
-    # Teile die Liste in zwei Hälften
-    mid = len(arr) // 2
-    left_half = arr[:mid]
-    right_half = arr[mid:]
-    
-    # Sortiere rekursiv beide Hälften
-    left_sorted = merge_sort(left_half, key)
-    right_sorted = merge_sort(right_half, key)
-    
-    # Füge die sortierten Hälften zusammen
-    return _merge(left_sorted, right_sorted, key)
+    if len(data) <= 1:
+        return list(data)
+
+    mid = len(data) // 2
+    left = merge_sort(data[:mid], key=key)
+    right = merge_sort(data[mid:], key=key)
+
+    return _merge(left, right, key=key)
 
 
-def _merge(left: List[Any], right: List[Any], key: str = None) -> List[Any]:
-    """Merge two sorted lists."""
-    result = []
+def _merge(
+    left: list[Any], right: list[Any], key: Callable
+) -> list[Any]:
+    """Merge two sorted lists into one sorted list."""
+    result: list[Any] = []
     i = j = 0
-    
+
     while i < len(left) and j < len(right):
-        # Bestimme die zu vergleichenden Werte
-        if key:
-            left_val = left[i][key] if isinstance(left[i], dict) else getattr(left[i], key, None)
-            right_val = right[j][key] if isinstance(right[j], dict) else getattr(right[j], key, None)
-        else:
-            left_val = left[i]
-            right_val = right[j]
-        
-        # Vergleich
-        if left_val <= right_val:
+        if key(left[i]) <= key(right[j]):
             result.append(left[i])
             i += 1
         else:
             result.append(right[j])
             j += 1
-    
-    # Füge restliche Elemente hinzu
+
     result.extend(left[i:])
     result.extend(right[j:])
-    
     return result
 
 
-def binary_search(arr: List[Any], target: Any, key: str = None) -> int:
-    """
-    Implementierung der binären Suche.
-    
+# ---------------------------------------------------------------------------
+# Sorting — Insertion Sort
+# ---------------------------------------------------------------------------
+
+def insertion_sort(data: list[Any], key: Callable = lambda x: x) -> list[Any]:
+    """Sort *data* using the insertion-sort algorithm.
+
     Args:
-        arr: Sortierte Liste, in der gesucht werden soll
-        target: Zu suchender Wert
-        key: Falls in Dictionaries gesucht wird, Schlüssel zum Vergleichen
-        
+        data: List of items to sort.
+        key: Function that extracts a comparison key from each item.
+
     Returns:
-        Index des gefundenen Elements oder -1 falls nicht gefunden
+        A new sorted list (the original is not modified).
+
+    Complexity:
+        Time  — O(n²) worst / average, O(n) best (already sorted)
+        Space — O(n) for the copy
     """
-    low = 0
-    high = len(arr) - 1
-    
+    arr = list(data)  # copy input
+
+    for i in range(1, len(arr)):
+        current = arr[i]
+        current_key = key(current)
+        j = i - 1
+
+        # shift larger elements to the right
+        while j >= 0 and key(arr[j]) > current_key:
+            arr[j + 1] = arr[j]
+            j -= 1
+
+        # insert current element
+        arr[j + 1] = current
+
+    return arr
+
+
+# ---------------------------------------------------------------------------
+# Searching — Binary Search
+# ---------------------------------------------------------------------------
+
+def binary_search(
+    sorted_data: list[Any],
+    target: Any,
+    key: Callable = lambda x: x,
+) -> int | None:
+    """Search for *target* in a sorted list using binary search.
+
+    Args:
+        sorted_data: A list sorted in ascending order by *key*.
+        target: The value to search for.
+        key: Function that extracts the comparison value from each item.
+
+    Returns:
+        The index of the found item, or None if not found.
+
+    Complexity:
+        Time  — O(log n)
+        Space — O(1)
+    """
+    low, high = 0, len(sorted_data) - 1
+
     while low <= high:
         mid = (low + high) // 2
-        
-        # Bestimme den Vergleichswert
-        if key:
-            if isinstance(arr[mid], dict):
-                mid_val = arr[mid][key]
-            else:
-                mid_val = getattr(arr[mid], key, None)
-        else:
-            mid_val = arr[mid]
-        
-        # Vergleich
+        mid_val = key(sorted_data[mid])
+
         if mid_val == target:
             return mid
         elif mid_val < target:
             low = mid + 1
         else:
             high = mid - 1
-    
-    return -1  # Nicht gefunden
+
+    return None
 
 
-def benchmark_sorting(data: List[Any], key: str = None, iterations: int = 100) -> dict:
-    """
-    Vergleicht die Performance von Merge Sort mit eingebauten Sortierfunktionen.
-    
+# ---------------------------------------------------------------------------
+# Searching — Linear Search
+# ---------------------------------------------------------------------------
+
+def linear_search(
+    data: list[Any],
+    target: Any,
+    key: Callable = lambda x: x,
+) -> int | None:
+    """Search for *target* by scanning every element in *data*.
+
     Args:
-        data: Zu sortierende Daten
-        key: Schlüssel zum Sortieren (falls nötig)
-        iterations: Anzahl der Wiederholungen für den Benchmark
-        
+        data: List of items (does not need to be sorted).
+        target: The value to search for.
+        key: Function that extracts the comparison value from each item.
+
     Returns:
-        Dictionary mit Zeitmessungen
+        The index of the first matching item, or None if not found.
+
+    Complexity:
+        Time  — O(n)
+        Space — O(1)
     """
-    results = {}
-    
-    # 1. Custom Merge Sort
-    print("⏱️  Benchmark: Custom Merge Sort...")
+    for i, item in enumerate(data):
+        if key(item) == target:
+            return i
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Benchmarking helper
+# ---------------------------------------------------------------------------
+
+def benchmark_sort(data: list, key: Callable = lambda x: x, repeats: int = 5) -> dict:
+    """Compare custom merge_sort vs. built-in sorted().
+
+    Returns:
+        A dict with 'merge_sort_ms' and 'builtin_sorted_ms' timings.
+    """
     custom_time = timeit.timeit(
-        lambda: merge_sort(data.copy(), key),
-        number=iterations
-    ) / iterations
-    results["custom_merge_sort"] = custom_time
-    
-    # 2. Python's built-in sorted()
-    print("⏱️  Benchmark: Python sorted()...")
-    if key:
-        builtin_time = timeit.timeit(
-            lambda: sorted(data.copy(), key=lambda x: x[key] if isinstance(x, dict) else getattr(x, key, None)),
-            number=iterations
-        ) / iterations
-    else:
-        builtin_time = timeit.timeit(
-            lambda: sorted(data.copy()),
-            number=iterations
-        ) / iterations
-    results["builtin_sorted"] = builtin_time
-    
-    # 3. Pandas sort_values() (falls DataFrame)
-    if isinstance(data, pd.DataFrame):
-        print("⏱️  Benchmark: Pandas sort_values()...")
-        pandas_time = timeit.timeit(
-            lambda: data.copy().sort_values(by=key if key else data.columns[0]),
-            number=iterations
-        ) / iterations
-        results["pandas_sort_values"] = pandas_time
-    elif isinstance(data[0], dict) and key:
-        # Für Listen von Dictionaries simulieren wir Pandas
-        print("⏱️  Benchmark: Pandas Simulation...")
-        df = pd.DataFrame(data)
-        pandas_time = timeit.timeit(
-            lambda: df.copy().sort_values(by=key),
-            number=iterations
-        ) / iterations
-        results["pandas_sort_values"] = pandas_time
-    
-    # Berechne Performance-Verhältnisse
-    if "builtin_sorted" in results:
-        results["custom_vs_builtin_ratio"] = custom_time / builtin_time
-    
-    return results
+        lambda: merge_sort(data, key=key), number=repeats
+    )
+    builtin_time = timeit.timeit(
+        lambda: sorted(data, key=key), number=repeats
+    )
+
+    return {
+        "merge_sort_ms": round(custom_time / repeats * 1000, 2),
+        "builtin_sorted_ms": round(builtin_time / repeats * 1000, 2),
+    }
 
 
-def benchmark_searching(sorted_data: List[Any], targets: List[Any], key: str = None) -> dict:
-    """
-    Vergleicht die Performance von Binary Search mit eingebauten Suchmethoden.
-    
-    Args:
-        sorted_data: Sortierte Daten, in denen gesucht werden soll
-        targets: Liste von zu suchenden Werten
-        key: Schlüssel zum Suchen (falls nötig)
-        
+def benchmark_search(
+    data: list,
+    target: Any,
+    key: Callable = lambda x: x,
+    repeats: int = 5,
+) -> dict:
+    """Compare custom binary_search vs. built-in methods.
+
+    *data* must already be sorted by *key* for binary_search.
+
     Returns:
-        Dictionary mit Zeitmessungen
+        A dict with 'binary_search_ms', 'linear_search_ms',
+        and 'builtin_in_ms' timings.
     """
-    results = {}
+    # --- Binary Search ---
+    binary_time = timeit.timeit(
+        lambda: binary_search(data, target, key=key),
+        number=repeats
+    )
+
+    # --- Linear Search ---
+    linear_time = timeit.timeit(
+        lambda: linear_search(data, target, key=key),
+        number=repeats
+    )
+
+    # --- Built-in search (in operator) ---
+    builtin_time = timeit.timeit(
+        lambda: target in [key(item) for item in data],
+        number=repeats
+    )
+
+    return {
+        "binary_search_ms": round(binary_time / repeats * 1000, 2),
+        "linear_search_ms": round(linear_time / repeats * 1000, 2),
+        "builtin_in_ms": round(builtin_time / repeats * 1000, 2),
+    }
+"""
+Custom sorting and searching algorithms for the CityBike platform.
+This module implements Merge Sort, Insertion Sort, Binary Search, and Linear Search.
+"""
+
+import timeit
+from collections.abc import Callable
+from typing import Any, List, Optional
+
+# ---------------------------------------------------------------------------
+# Sorting — Merge Sort
+# ---------------------------------------------------------------------------
+
+def merge_sort(data: list[Any], key: Callable = lambda x: x) -> list[Any]:
+    """
+    Sorts *data* using the merge-sort algorithm.
     
-    # 1. Custom Binary Search
-    print("🔍 Benchmark: Custom Binary Search...")
-    start_time = time.time()
-    for target in targets:
-        binary_search(sorted_data, target, key)
-    custom_time = (time.time() - start_time) / len(targets)
-    results["custom_binary_search"] = custom_time
-    
-    # 2. Python's linear search (in operator)
-    print("🔍 Benchmark: Python linear search (in)...")
-    start_time = time.time()
-    for target in targets:
-        if key:
-            target in [item[key] if isinstance(item, dict) else getattr(item, key, None) for item in sorted_data]
+    Complexity:
+        Time  — O(n log n) [cite: 72]
+        Space — O(n) [cite: 72]
+    """
+    if len(data) <= 1:
+        return list(data)
+
+    mid = len(data) // 2
+    left = merge_sort(data[:mid], key=key)
+    right = merge_sort(data[mid:], key=key)
+
+    return _merge(left, right, key=key)
+
+
+def _merge(left: list[Any], right: list[Any], key: Callable) -> list[Any]:
+    """Merge two sorted lists into one sorted list."""
+    result: list[Any] = []
+    i = j = 0
+
+    while i < len(left) and j < len(right):
+        if key(left[i]) <= key(right[j]):
+            result.append(left[i])
+            i += 1
         else:
-            target in sorted_data
-    linear_time = (time.time() - start_time) / len(targets)
-    results["linear_search_in"] = linear_time
+            result.append(right[j])
+            j += 1
+
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Sorting — Insertion Sort
+# ---------------------------------------------------------------------------
+
+def insertion_sort(data: list[Any], key: Callable = lambda x: x) -> list[Any]:
+    """
+    Sorts *data* using the insertion-sort algorithm.
     
-    # 3. Pandas .loc[] (falls DataFrame oder Liste von Dictionaries)
-    if isinstance(sorted_data, pd.DataFrame) or (sorted_data and isinstance(sorted_data[0], dict)):
-        print("🔍 Benchmark: Pandas .loc[]...")
-        if isinstance(sorted_data, pd.DataFrame):
-            df = sorted_data
-        else:
-            df = pd.DataFrame(sorted_data)
+    Complexity:
+        Time  — O(n²) worst/average, O(n) best [cite: 81]
+        Space — O(n) for the copy
+    """
+    # Create a copy to avoid modifying the original list [cite: 128, 177]
+    arr = list(data)
+    for i in range(1, len(arr)):
+        current_item = arr[i]
+        current_key = key(current_item)
+        j = i - 1
         
-        start_time = time.time()
-        for target in targets:
-            if key:
-                df.loc[df[key] == target]
-        pandas_time = (time.time() - start_time) / len(targets)
-        results["pandas_loc"] = pandas_time
-    
-    return results
+        # Shift elements of arr[0..i-1] that are greater than current_key
+        while j >= 0 and key(arr[j]) > current_key:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = current_item
+        
+    return arr
 
 
-def print_benchmark_results(sort_results: dict, search_results: dict = None):
+# ---------------------------------------------------------------------------
+# Searching — Binary Search
+# ---------------------------------------------------------------------------
+
+def binary_search(
+    sorted_data: list[Any],
+    target: Any,
+    key: Callable = lambda x: x,
+) -> Optional[int]:
     """
-    Gibt Benchmark-Ergebnisse formatiert aus.
+    Search for *target* in a sorted list using binary search[cite: 78].
     
-    Args:
-        sort_results: Ergebnisse der Sortier-Benchmarks
-        search_results: Ergebnisse der Such-Benchmarks
+    Complexity:
+        Time  — O(log n) [cite: 81]
+        Space — O(1)
     """
-    print("\n" + "="*60)
-    print("📊 BENCHMARK ERGEBNISSE")
-    print("="*60)
-    
-    print("\n🔢 SORTIEREN:")
-    for method, time_taken in sort_results.items():
-        if "ratio" not in method:
-            print(f"  {method:<25} {time_taken*1000:>8.3f} ms")
-    
-    if "custom_vs_builtin_ratio" in sort_results:
-        ratio = sort_results["custom_vs_builtin_ratio"]
-        print(f"\n  Custom vs Built-in Ratio: {ratio:.2f}x")
-        if ratio > 1:
-            print(f"  ⚠️  Custom ist {ratio:.1f}x langsamer als Built-in")
+    low, high = 0, len(sorted_data) - 1
+
+    while low <= high:
+        mid = (low + high) // 2
+        mid_val = key(sorted_data[mid])
+
+        if mid_val == target:
+            return mid
+        elif mid_val < target:
+            low = mid + 1
         else:
-            print(f"  ✅ Custom ist {1/ratio:.1f}x schneller als Built-in")
-    
-    if search_results:
-        print("\n🔍 SUCHEN:")
-        for method, time_taken in search_results.items():
-            print(f"  {method:<25} {time_taken*1000:>8.3f} ms")
-    
-    print("\n📈 KOMPLEXITÄTSANALYSE:")
-    print("  Merge Sort:      O(n log n) Zeit, O(n) Speicher")
-    print("  Binary Search:   O(log n) Zeit, O(1) Speicher")
-    print("  Built-in sorted: O(n log n) Zeit (Timsort)")
-    print("  Linear Search:   O(n) Zeit")
-    
-    print("\n💡 HINWEISE:")
-    print("  - Built-in Funktionen sind optimiert und in C geschrieben")
-    print("  - Custom Implementierungen sind didaktisch wertvoll")
-    print("  - Für große Datensätze sind Built-in Funktionen meist schneller")
+            high = mid - 1
+
+    return None
 
 
-# Beispielverwendung
-if __name__ == "__main__":
-    print("🧪 Teste Algorithmen-Modul...")
+# ---------------------------------------------------------------------------
+# Searching — Linear Search
+# ---------------------------------------------------------------------------
+
+def linear_search(
+    data: list[Any],
+    target: Any,
+    key: Callable = lambda x: x,
+) -> Optional[int]:
+    """
+    Search for *target* by scanning every element in *data*[cite: 78].
     
-    # Testdaten erstellen
-    test_data = [
-        {"id": 3, "name": "Charlie", "duration": 25},
-        {"id": 1, "name": "Alice", "duration": 10},
-        {"id": 2, "name": "Bob", "duration": 15},
-        {"id": 4, "name": "David", "duration": 30},
-    ]
+    Complexity:
+        Time  — O(n) [cite: 81]
+        Space — O(1)
+    """
+    for index, item in enumerate(data):
+        if key(item) == target:
+            return index
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Benchmarking helpers
+# ---------------------------------------------------------------------------
+
+def benchmark_sort(data: list, key: Callable = lambda x: x, repeats: int = 5) -> dict:
+    """
+    Compare custom merge_sort vs. built-in sorted().
+    """
+    custom_time = timeit.timeit(
+        lambda: merge_sort(data, key=key), number=repeats
+    )
+    builtin_time = timeit.timeit(
+        lambda: sorted(data, key=key), number=repeats
+    )
+
+    return {
+        "merge_sort_ms": round(custom_time / repeats * 1000, 3),
+        "builtin_sorted_ms": round(builtin_time / repeats * 1000, 3),
+        "ratio": round(custom_time / builtin_time, 2)
+    }
+
+
+def benchmark_search(
+    data: list,
+    target: Any,
+    key: Callable = lambda x: x,
+    repeats: int = 100,
+) -> dict:
+    """
+    Compare custom binary_search vs. linear search and built-in methods[cite: 79, 251].
+    *data* must already be sorted by *key* for binary_search.
+    """
+    bin_time = timeit.timeit(
+        lambda: binary_search(data, target, key=key), number=repeats
+    )
+    lin_time = timeit.timeit(
+        lambda: linear_search(data, target, key=key), number=repeats
+    )
     
-    # Test Merge Sort
-    print("\n1. Teste Merge Sort...")
-    sorted_by_id = merge_sort(test_data.copy(), key="id")
-    print(f"   Sortiert nach ID: {[item['id'] for item in sorted_by_id]}")
-    
-    sorted_by_duration = merge_sort(test_data.copy(), key="duration")
-    print(f"   Sortiert nach Dauer: {[item['duration'] for item in sorted_by_duration]}")
-    
-    # Test Binary Search
-    print("\n2. Teste Binary Search...")
-    sorted_data = merge_sort(test_data.copy(), key="id")
-    index = binary_search(sorted_data, target=2, key="id")
-    print(f"   Suche ID=2: Index {index}, Name: {sorted_data[index]['name'] if index != -1 else 'Nicht gefunden'}")
-    
-    # Test Benchmarks
-    print("\n3. Führe Benchmarks aus...")
-    sort_results = benchmark_sorting(test_data, key="duration", iterations=1000)
-    search_results = benchmark_searching(sorted_data, targets=[1, 2, 3, 4], key="id")
-    
-    print_benchmark_results(sort_results, search_results)
+    # Built-in check (using 'in' operator on a list of keys)
+    keys_list = [key(item) for item in data]
+    builtin_time = timeit.timeit(
+        lambda: target in keys_list, number=repeats
+    )
+
+    return {
+        "binary_search_ms": round(bin_time / repeats * 1000, 5),
+        "linear_search_ms": round(lin_time / repeats * 1000, 5),
+        "builtin_in_ms": round(builtin_time / repeats * 1000, 5)
+    }
