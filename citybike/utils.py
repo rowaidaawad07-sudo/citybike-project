@@ -7,19 +7,19 @@ Keep I/O-free — these are pure helper functions.
 
 import re
 from datetime import datetime
-from typing import Any
+from typing import Any, Set
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-DATE_FORMAT = "%Y-%m-%d"
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATE_FORMAT: str = "%Y-%m-%d"
+DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 
-VALID_BIKE_TYPES = {"classic", "electric"}
-VALID_USER_TYPES = {"casual", "member"}
-VALID_TRIP_STATUSES = {"completed", "cancelled"}
-VALID_MAINTENANCE_TYPES = {
+VALID_BIKE_TYPES: Set[str] = {"classic", "electric"}
+VALID_USER_TYPES: Set[str] = {"casual", "member"}
+VALID_TRIP_STATUSES: Set[str] = {"completed", "cancelled"}
+VALID_MAINTENANCE_TYPES: Set[str] = {
     "tire_repair",
     "brake_adjustment",
     "battery_replacement",
@@ -46,13 +46,13 @@ def validate_positive(value: float, name: str = "value") -> float:
     """
     if value <= 0:
         raise ValueError(f"{name} must be positive, got {value}")
-    return value
+    return float(value)
 
 def validate_non_negative(value: float, name: str = "value") -> float:
     """Ensure *value* is zero or positive."""
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
-    return value
+    return float(value)
 
 def validate_email(email: str) -> str:
     """
@@ -65,14 +65,15 @@ def validate_email(email: str) -> str:
        raise ValueError("Invalid email: Must be a string")
 
     # Strengeres Regex-Muster: Text + @ + Text + . + Text
-    email_pattern = r"^[^@]+@[^@]+\.[^@]+$"
+    email_pattern: str = r"^[^@]+@[^@]+\.[^@]+$"
     
     # Validierung mit dem Regex-Modul (re)
     if not re.match(email_pattern, email.strip()):
         raise ValueError(f"Invalid email format: {email}")
         
-    return email.strip()    
-def validate_in(value: Any, allowed: set, name: str = "value") -> Any:
+    return str(email.strip())    
+
+def validate_in(value: Any, allowed: Set[Any], name: str = "value") -> Any:
     """Ensure *value* is in the *allowed* set."""
     if value not in allowed:
         raise ValueError(f"{name} must be one of {allowed}, got {value!r}")
@@ -101,8 +102,8 @@ def fmt_duration(minutes: float) -> str:
         >>> fmt_duration(95.5)
         '1h 35m'
     """
-    h = int(minutes // 60)
-    m = int(minutes % 60)
+    h: int = int(minutes // 60)
+    m: int = int(minutes % 60)
     return f"{h}h {m}m"
 
 def fmt_currency(amount: float) -> str:
@@ -113,5 +114,3 @@ def fmt_currency(amount: float) -> str:
         '€9.50'
     """
     return f"€{amount:.2f}"
-
-

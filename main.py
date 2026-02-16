@@ -2,9 +2,6 @@
 CityBike — Bike-Sharing Analytics Platform
 ===========================================
 Haupt-Einstiegspunkt, der die gesamte Pipeline steuert.
-
-Verwendung:
-    python main.py
 """
 
 import sys
@@ -12,21 +9,21 @@ import os
 import numpy as np
 from pathlib import Path
 
-# --- Pfad-Konfiguration für Module und Daten ---
-# Wir definieren das Hauptverzeichnis (Root) des Projekts
+# --- Pfad-Konfiguration ---
+# Bestimmung des Root-Verzeichnisses des Projekts
 BASE_DIR = Path(__file__).parent.absolute()
 
-# Das Hauptverzeichnis zum sys.path hinzufügen, damit 'citybike' als Package erkannt wird
+# Das Root-Verzeichnis zum sys.path hinzufügen, um Paket-Importe zu ermöglichen
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-# Importe aus dem 'citybike' Package
+# Importe - Die Funktionsnamen wurden an visualization.py angepasst
 from citybike.analyzer import BikeShareSystem
 from citybike.visualization import (
-    create_trips_per_station_chart, 
-    create_monthly_trend_chart, 
-    create_duration_histogram, 
-    create_duration_boxplot
+    plot_trips_per_station, 
+    plot_monthly_trend, 
+    plot_duration_histogram, 
+    plot_duration_by_user_type
 )
 from citybike.pricing import CasualPricing, MemberPricing
 from citybike.numerical import calculate_fares
@@ -35,7 +32,7 @@ def main() -> None:
     """Führt die komplette CityBike-Analyse-Pipeline aus."""
 
     # 1. System initialisieren
-    # Das System-Objekt wird erstellt (nutzt Pfade innerhalb von citybike/)
+    # Erstellt die Instanz für das Analyse-System
     system = BikeShareSystem()
 
     # Schritt 1 — Daten laden
@@ -50,24 +47,22 @@ def main() -> None:
     print("\n>>> Schritt 3: Datenbereinigung wird durchgeführt ...")
     system.clean_data()
 
-    # Schritt 4 — Analysen und Statistiken
+    # Schritt 4 — Analysen
     print("\n>>> Schritt 4: Analysen werden ausgeführt ...")
     summary = system.total_trips_summary()
     print(f"   Gesamtzahl der Fahrten  : {summary['total_trips']}")
     print(f"   Gesamtdistanz           : {summary['total_distance_km']:.2f} km")
     print(f"   Durchschnittliche Dauer : {summary['avg_duration_min']:.2f} min")
 
-    # Schritt 4b — Umsatzberechnung mit NumPy
+    # Schritt 4b — Umsatzberechnung
     print("\n>>> Schritt 4b: Umsatzberechnung (Vektorisierung) ...")
     casual_strat = CasualPricing()
-    
-    # Filter für Casual-Nutzer anwenden
     casual_mask = system.trips["user_type"] == "casual"
+    
     if any(casual_mask):
         durations = system.trips.loc[casual_mask, "duration_minutes"].to_numpy()
         distances = system.trips.loc[casual_mask, "distance_km"].to_numpy()
         
-        # Berechnung der Gebühren
         fares = calculate_fares(
             durations=durations,
             distances=distances,
@@ -77,13 +72,12 @@ def main() -> None:
         )
         print(f"   Gesamtumsatz (Casual)   : €{np.sum(fares):.2f}")
 
-    # Schritt 5 — Visualisierungen (Plots)
+    # Schritt 5 — Visualisierungen (Korrekte Funktionsaufrufe)
     print("\n>>> Schritt 5: Diagramme werden erstellt ...")
-    # Diese Funktionen speichern die Bilder in 'citybike/output/figures/'
-    create_trips_per_station_chart(system.trips, system.stations)
-    create_monthly_trend_chart(system.trips)
-    create_duration_histogram(system.trips)
-    create_duration_boxplot(system.trips)
+    plot_trips_per_station(system.trips, system.stations)
+    plot_monthly_trend(system.trips)
+    plot_duration_histogram(system.trips)
+    plot_duration_by_user_type(system.trips)
 
     # Schritt 6 — Berichtsexport
     print("\n>>> Schritt 6: Zusammenfassender Bericht wird generiert ...")

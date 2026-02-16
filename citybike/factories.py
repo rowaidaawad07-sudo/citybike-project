@@ -5,6 +5,7 @@ Die Factory-Funktionen verbergen, welche konkrete Unterklasse instanziiert wird,
 sodass der Rest des Codes ClassicBike / ElectricBike etc. nicht direkt importieren muss.
 """
 
+from typing import Dict, Any
 from citybike.models import (
     Bike,
     ClassicBike,
@@ -15,7 +16,8 @@ from citybike.models import (
 )
 
 
-def create_bike(data: dict) -> Bike:
+
+def create_bike(data: Dict[str, Any]) -> Bike:
     """
     Erstellt ein Bike (ClassicBike oder ElectricBike) aus einem Daten-Dictionary.
 
@@ -28,7 +30,7 @@ def create_bike(data: dict) -> Bike:
     Raises:
         ValueError: Wenn der bike_type unbekannt ist.
     """
-    bike_type = data.get("bike_type", "").lower()
+    bike_type: str = str(data.get("bike_type", "")).lower()
 
     if bike_type == "classic":
         return ClassicBike(
@@ -45,7 +47,7 @@ def create_bike(data: dict) -> Bike:
        raise ValueError(f"Unknown bike_type: {bike_type}")
 
 
-def create_user(data: dict) -> User:
+def create_user(data: Dict[str, Any]) -> User:
     """
     Erstellt einen User (CasualUser oder MemberUser) aus einem Daten-Dictionary.
 
@@ -64,7 +66,7 @@ def create_user(data: dict) -> User:
         True
     """
     # Bestimmung des Benutzertyps aus den Daten
-    user_type = data.get("user_type", "").lower()
+    user_type: str = str(data.get("user_type", "")).lower()
 
     if user_type == "casual":
         return CasualUser(
@@ -77,7 +79,7 @@ def create_user(data: dict) -> User:
             user_id=data["user_id"],
             name=data["name"],
             email=data["email"],
-            membership_id=data.get("membership_id", "N/A")
+            membership_id=str(data.get("membership_id", "N/A"))
         )
     else:
         # Fehlermeldung, wenn der Typ nicht zugeordnet werden kann

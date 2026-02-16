@@ -6,10 +6,11 @@ Bietet ein gemeinsames Interface `PricingStrategy` und konkrete Implementierunge
 
 from abc import ABC, abstractmethod
 
-
 # ---------------------------------------------------------------------------
 # Strategy interface
 # ---------------------------------------------------------------------------
+
+
 
 class PricingStrategy(ABC):
     """Abstrakte Preisstrategie — berechnet die Kosten einer Fahrt."""
@@ -43,19 +44,20 @@ class CasualPricing(PricingStrategy):
         - 0.10 € pro km
     """
 
-    UNLOCK_FEE = 1.00
-    PER_MINUTE = 0.15
-    PER_KM = 0.10
+    UNLOCK_FEE: float = 1.00
+    PER_MINUTE: float = 0.15
+    PER_KM: float = 0.10
 
     def calculate_cost(
         self, duration_minutes: float, distance_km: float
     ) -> float:
         """Berechnet die Kosten für Casual-Nutzer."""
-        return (
+        cost: float = (
             self.UNLOCK_FEE
             + (self.PER_MINUTE * duration_minutes)
             + (self.PER_KM * distance_km)
         )
+        return float(cost)
 
 
 class MemberPricing(PricingStrategy):
@@ -67,16 +69,16 @@ class MemberPricing(PricingStrategy):
         - 0.05 € pro km
     """
 
-    PER_MINUTE = 0.08
-    PER_KM = 0.05
+    PER_MINUTE: float = 0.08
+    PER_KM: float = 0.05
 
     def calculate_cost(
         self, duration_minutes: float, distance_km: float
     ) -> float:
         """Berechnet die Kosten für Mitglieder ohne Grundgebühr."""
         # Die Formel für Mitglieder: (Kosten pro Min * Dauer) + (Kosten pro km * Distanz)
-        cost = (self.PER_MINUTE * duration_minutes) + (self.PER_KM * distance_km)
-        return round(cost, 2)
+        cost: float = (self.PER_MINUTE * duration_minutes) + (self.PER_KM * distance_km)
+        return float(round(cost, 2))
 
 
 class PeakHourPricing(PricingStrategy):
@@ -86,16 +88,16 @@ class PeakHourPricing(PricingStrategy):
         - Wende einen 1.5-fachen Multiplikator auf die CasualPricing-Kosten an.
     """
 
-    MULTIPLIER = 1.5
+    MULTIPLIER: float = 1.5
 
     def calculate_cost(
         self, duration_minutes: float, distance_km: float
     ) -> float:
         """Berechnet die Kosten mit einem Stoßzeiten-Aufschlag."""
         # Zuerst die Basis-Kosten für Gelegenheitsnutzer berechnen
-        casual_strategy = CasualPricing()
-        base_cost = casual_strategy.calculate_cost(duration_minutes, distance_km)
+        casual_strategy: PricingStrategy = CasualPricing()
+        base_cost: float = casual_strategy.calculate_cost(duration_minutes, distance_km)
         
         # Den Multiplikator (1.5x) anwenden
-        peak_cost = base_cost * self.MULTIPLIER
-        return round(peak_cost, 2)
+        peak_cost: float = base_cost * self.MULTIPLIER
+        return float(round(peak_cost, 2))

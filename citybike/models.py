@@ -4,6 +4,7 @@ Domain-Modelle für die CityBike Bike-Sharing Analytics Plattform.
 
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Set, Optional
 
 
 # ---------------------------------------------------------------------------
@@ -13,11 +14,11 @@ from datetime import datetime
 class Entity(ABC):
     """Abstract base class for all domain entities."""
 
-    def __init__(self, id: str, created_at: datetime | None = None) -> None:
+    def __init__(self, id: str, created_at: Optional[datetime] = None) -> None:
         if not id or not isinstance(id, str):
             raise ValueError("id must be a non-empty string")
-        self._id = id
-        self._created_at = created_at or datetime.now()
+        self._id: str = id
+        self._created_at: datetime = created_at or datetime.now()
 
     @property
     def id(self) -> str:
@@ -44,10 +45,12 @@ class Entity(ABC):
 # Bike hierarchy
 # ---------------------------------------------------------------------------
 
+
+
 class Bike(Entity):
     """Represents a bike in the sharing system."""
 
-    VALID_STATUSES = {"available", "in_use", "maintenance"}
+    VALID_STATUSES: Set[str] = {"available", "in_use", "maintenance"}
 
     def __init__(
         self,
@@ -60,8 +63,8 @@ class Bike(Entity):
             raise ValueError(f"Invalid bike_type: {bike_type}")
         if status not in self.VALID_STATUSES:
             raise ValueError(f"Invalid status: {status}")
-        self._bike_type = bike_type
-        self._status = status
+        self._bike_type: str = bike_type
+        self._status: str = status
 
     @property
     def bike_type(self) -> str:
@@ -99,7 +102,7 @@ class ClassicBike(Bike):
         super().__init__(bike_id=bike_id, bike_type="classic", status=status)
         if gear_count <= 0:
             raise ValueError("gear_count must be positive")
-        self._gear_count = gear_count
+        self._gear_count: int = gear_count
 
     @property
     def gear_count(self) -> int:
@@ -130,8 +133,8 @@ class ElectricBike(Bike):
             raise ValueError("battery_level muss zwischen 0 und 100 liegen")
         if max_range_km <= 0:
             raise ValueError("max_range_km muss positiv sein")
-        self._battery_level = battery_level
-        self._max_range_km = max_range_km
+        self._battery_level: float = battery_level
+        self._max_range_km: float = max_range_km
 
     @property
     def battery_level(self) -> float:
@@ -173,10 +176,10 @@ class Station(Entity):
             raise ValueError("latitude must be in [-90, 90]")
         if not (-180 <= longitude <= 180):
             raise ValueError("longitude must be in [-180, 180]")
-        self._name = name
-        self._capacity = capacity
-        self._latitude = latitude
-        self._longitude = longitude
+        self._name: str = name
+        self._capacity: int = capacity
+        self._latitude: float = latitude
+        self._longitude: float = longitude
 
     @property
     def name(self) -> str:
@@ -206,9 +209,9 @@ class User(Entity):
         super().__init__(id=user_id)
         if "@" not in email:
             raise ValueError("Invalid email format")
-        self._name = name
-        self._email = email
-        self._user_type = user_type
+        self._name: str = name
+        self._email: str = email
+        self._user_type: str = user_type
 
     @property
     def name(self) -> str:
@@ -234,7 +237,7 @@ class CasualUser(User):
         super().__init__(user_id=user_id, name=name, email=email, user_type="casual")
         if day_pass_count < 0:
             raise ValueError("day_pass_count must be >= 0")
-        self._day_pass_count = day_pass_count
+        self._day_pass_count: int = day_pass_count
 
     def __str__(self) -> str:
         return f"CasualUser({self.name}, passes={self._day_pass_count})"
@@ -251,8 +254,8 @@ class MemberUser(User):
         user_id: str,
         name: str,
         email: str,
-        membership_start: datetime = None,
-        membership_end: datetime = None,
+        membership_start: Optional[datetime] = None,
+        membership_end: Optional[datetime] = None,
         tier: str = "basic",
     ) -> None:
         super().__init__(user_id=user_id, name=name, email=email, user_type="member")
@@ -260,9 +263,9 @@ class MemberUser(User):
             raise ValueError("tier must be 'basic' or 'premium'")
         if membership_start and membership_end and membership_end < membership_start:
             raise ValueError("membership_end must be >= membership_start")
-        self._membership_start = membership_start
-        self._membership_end = membership_end
-        self._tier = tier
+        self._membership_start: Optional[datetime] = membership_start
+        self._membership_end: Optional[datetime] = membership_end
+        self._tier: str = tier
 
     def __str__(self) -> str:
         return f"MemberUser({self.name}, tier={self._tier})"
@@ -293,14 +296,14 @@ class Trip:
             raise ValueError("distance_km must be >= 0")
         if end_time < start_time:
             raise ValueError("end_time must be >= start_time")
-        self.trip_id = trip_id
-        self.user = user
-        self.bike = bike
-        self.start_station = start_station
-        self.end_station = end_station
-        self.start_time = start_time
-        self.end_time = end_time
-        self.distance_km = distance_km
+        self.trip_id: str = trip_id
+        self.user: User = user
+        self.bike: Bike = bike
+        self.start_station: Station = start_station
+        self.end_station: Station = end_station
+        self.start_time: datetime = start_time
+        self.end_time: datetime = end_time
+        self.distance_km: float = distance_km
 
     @property
     def duration_minutes(self) -> float:
@@ -322,7 +325,7 @@ class Trip:
 class MaintenanceRecord:
     """Represents a maintenance event for a bike."""
 
-    VALID_TYPES = {
+    VALID_TYPES: Set[str] = {
         "tire_repair",
         "brake_adjustment",
         "battery_replacement",
@@ -343,12 +346,12 @@ class MaintenanceRecord:
             raise ValueError(f"Invalid maintenance type: {maintenance_type}")
         if cost < 0:
             raise ValueError("cost must be >= 0")
-        self.record_id = record_id
-        self.bike = bike
-        self.date = date
-        self.maintenance_type = maintenance_type
-        self.cost = cost
-        self.description = description
+        self.record_id: str = record_id
+        self.bike: Bike = bike
+        self.date: datetime = date
+        self.maintenance_type: str = maintenance_type
+        self.cost: float = cost
+        self.description: str = description
 
     def __str__(self) -> str:
         return f"MaintenanceRecord({self.record_id}, {self.maintenance_type})"

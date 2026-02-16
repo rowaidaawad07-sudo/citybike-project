@@ -1,0 +1,174 @@
+============================================================
+         CITYBIKE — DETAILLIERTER ANALYSEBERICHT
+============================================================
+
+PROZESS-DETAILS:
+Die Daten wurden erfolgreich bereinigt. Ausreißer wurden identifiziert.
+Hier sind die detaillierten Ergebnisse der 14 Analysefragen:
+
+[1] GESAMTSTATISTIK:
+    - Gesamtzahl valider Fahrten: 1500
+    - Gesamte Distanz: 11426.33 km
+    - Durchschnittliche Dauer: 23.33 Minuten
+
+[2a] TOP 10 STARTSTATIONEN:
+station_id  trip_count      station_name
+     ST106         113          Old Town
+     ST103         110    Riverside Park
+     ST104         110     Market Square
+     ST107         107       Harbor View
+     ST112         105 Business District
+     ST102         104         City Hall
+     ST105         103          Tech Hub
+     ST113         103          Lakeside
+     ST100          99   Central Station
+     ST101          97 University Campus
+
+[2b] TOP 10 ENDSTATIONEN:
+station_id  trip_count      station_name
+     ST114         115  Airport Terminal
+     ST105         114          Tech Hub
+     ST104         112     Market Square
+     ST107         107       Harbor View
+     ST101         107 University Campus
+     ST103         105    Riverside Park
+     ST108         102      Sports Arena
+     ST106         100          Old Town
+     ST100         100   Central Station
+     ST102          96         City Hall
+
+[3] NUTZUNG NACH STUNDEN (PEAK HOURS):
+start_time
+6     74
+7     98
+8     68
+9     82
+10    76
+11    88
+12    91
+13    83
+14    76
+15    92
+16    95
+17    91
+18    99
+19    96
+20    98
+21    98
+22    95
+
+[4] WOCHENTAG-ANALYSE:
+start_time
+Tuesday      229
+Wednesday    224
+Thursday     217
+Monday       217
+Friday       213
+Sunday       208
+Saturday     192
+
+[5] DISTANZ PRO NUTZERTYP:
+user_type
+casual    7.486766
+member    7.690062
+
+[6] TOP 10 BIKE-ID AUSLASTUNG (IN %):
+   BK261          0.43%
+   BK329          0.41%
+   BK312          0.37%
+   BK295          0.32%
+   BK227          0.25%
+   BK251          0.25%
+   BK320          0.19%
+   BK328          0.19%
+   BK325          0.17%
+   BK327          0.16%
+
+[7] MONATLICHER TREND:
+start_time
+2024-01-31    126
+2024-02-29    114
+2024-03-31    130
+2024-04-30    126
+2024-05-31    129
+2024-06-30    121
+2024-07-31    136
+2024-08-31    129
+2024-09-30    116
+2024-10-31    132
+2024-11-30    125
+2024-12-31    116
+Freq: ME
+ANALYSE: Die Daten zeigen einen Rückgang im Vergleich zum Jahresbeginn (-7.9%). Der aktivste Monat war der July mit 136 Fahrten.
+
+[8] WARTUNGSKOSTEN NACH TYP:
+bike_type
+classic      5496.39
+electric    13988.04
+
+[9] TOP 15 AKTIVSTE NUTZER:
+user_id
+USR1014    60
+USR1080    44
+USR1189    43
+USR1040    43
+USR1032    42
+USR1053    42
+USR1004    41
+USR1034    37
+USR1135    37
+USR1161    36
+ANALYSE: Der Nutzer 'USR1014' ist mit 60 Fahrten am aktivsten. Diese Top 15 Power-User bilden den Kern der Systemnutzung.
+
+[10] TOP 10 BELIEBTESTE ROUTEN:
+start_station_id end_station_id  trips
+           ST113          ST105     14
+           ST107          ST107     13
+           ST103          ST103     12
+           ST101          ST105     12
+           ST106          ST114     12
+           ST109          ST102     11
+           ST103          ST101     11
+           ST103          ST111     11
+           ST107          ST106     11
+           ST108          ST105     11
+
+[11] FAHRTSTATUS-VERTEILUNG:
+status
+completed    1248
+cancelled     174
+
+[12] DURCHSCHNITTSRATE PRO SEGMENT:
+user_type
+casual     8.230769
+member    14.846154
+
+[13] TOP 10 WARTUNGS-FREQUENZ (BIKE-ID):
+bike_id
+BK261    12
+BK312    12
+BK329    11
+BK315     9
+BK317     9
+BK295     9
+BK251     8
+BK227     7
+BK328     6
+BK320     6
+
+[14] STATISTISCHE AUSREISSER (TOP 10 LÄNGSTE FAHRTEN):
+trip_id  duration_minutes
+TR10068             104.7
+TR10194              97.2
+TR10199             105.0
+TR10288             192.3
+TR10299              98.3
+TR10416             112.4
+TR10473             136.4
+TR10524             101.8
+TR10567             102.0
+TR10581             119.6
+
+============================================================
+                                ENDE DES BERICHTS
+============================================================
